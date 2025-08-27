@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Invoice Software</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .invoice-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+        .logo-container img {
+            max-height: 80px;
+            margin-right: 15px;
+        }
+        .company-info {
+            flex-grow: 1;
+        }
+        .invoice-title {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .details, .customer {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .table-container {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .totals {
+            text-align: right;
+        }
+        .editable {
+            border: none;
+            background: #f0f0f0;
+            padding: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .editable:focus {
+            outline: none;
+            background: #e0e0f0;
+        }
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .remove-btn {
+            background-color: #f44336;
+        }
+        .remove-btn:hover {
+            background-color: #d32f2f;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .search-container input {
+            padding: 8px;
+            width: 300px;
+            margin-right: 10px;
+        }
+        .search-container button {
+            padding: 8px 16px;
+        }
+        .customer-lookup {
+            margin-bottom: 20px;
+        }
+        .customer-lookup select {
+            padding: 8px;
+            width: 300px;
+        }
+        .medicine-list {
+            margin-bottom: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .medicine-list table {
+            margin-bottom: 0;
+        }
+        .customer-form, .medicine-form {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+        }
+        .customer-form label, .medicine-form label {
+            display: block;
+            margin: 5px 0;
+        }
+        .customer-form input, .customer-form select, .medicine-form input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        @media print {
+            .buttons, .search-container, .customer-lookup, .medicine-list, .customer-form, .medicine-form {
+                display: none;
+            }
+            .editable {
+                background: none;
+                border-bottom: 1px dotted #000;
+            }
+            .remove-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container" id="invoice">
+        <div class="header">
+            <div class="logo-container">
+                <img src="/static/imag/invo.logo.png" alt="GR Traders Logo">
+                <div class="company-info">
+                    <h2>GR TRADERS</h2>
+                    <p>MULTAN ROAD BUREWALA</p>
+                    <p>PHONE#: 03116119505</p>
+                </div>
+            </div>
+        </div>
+        <div class="details">
+            
+            <div>
+                <p>Invoice #: <span class="editable" contenteditable="true" id="invoice-no">0003223</span></p>
+                <p>Invoice Date: <span class="editable" contenteditable="true" id="invoice-date">08/05/2025</span></p>
+                <p>DSS ID: <span class="editable" contenteditable="true" id="dss-id">000113</span></p>
+                <p>Booking Man: <span class="editable" contenteditable="true" id="booking-man">NAZIM NADEEM</span></p>
+            </div>
+            <div class="customer">
+                <div>
+                    <p>Customer ID: <span class="editable" contenteditable="true" id="customer-id">NON-FILER</span></p>
+                    <p>Customer Name: <span class="editable" contenteditable="true" id="customer-name">DR.SHAHJAR IQBAL (AL-SHIFA MIDICAL CENTER)</span></p>
+                    <p>Reg.No: <span class="editable" contenteditable="true" id="reg-no">1010203/MULTAN ROAD</span></p>
+                    <p>Address: <span class="editable" contenteditable="true" id="address">505/EB ROAD NEAR GIRLS SCHOOL</span></p>
+                    <p>Phone#: <span class="editable" contenteditable="true" id="phone">03000925374</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="customer-lookup">
+            <label for="customer-select">Select Customer: </label>
+            <select id="customer-select" onchange="loadCustomer()">
+                <option value="">-- Select Customer --</option>
+                <!-- Populated by JavaScript -->
+            </select>
+        </div>
+        <div class="customer-form">
+            <h3>Add New Customer</h3>
+            <label for="new-customer-name">Name:</label>
+            <input type="text" id="new-customer-name" placeholder="Enter customer name">
+            <label for="new-customer-reg-no">Reg.No:</label>
+            <input type="text" id="new-customer-reg-no" placeholder="Enter registration number">
+            <label for="new-customer-address">Address:</label>
+            <input type="text" id="new-customer-address" placeholder="Enter address">
+            <label for="new-customer-phone">Phone#:</label>
+            <input type="text" id="new-customer-phone" placeholder="Enter phone number">
+            <label for="new-customer-id">Customer ID:</label>
+            <select id="new-customer-id">
+                <option value="FILER">Registered</option>
+                <option value="NON-FILER">Non-Registered</option>
+            </select>
+            <button onclick="addCustomer()">Add Customer</button>
+        </div>
+        <div class="medicine-form">
+            <h3>Add New Medicine</h3>
+            <label for="new-medicine-name">Name:</label>
+            <input type="text" id="new-medicine-name" placeholder="Enter medicine name">
+            <label for="new-medicine-rate">Rate:</label>
+            <input type="number" id="new-medicine-rate" step="0.01" placeholder="Enter rate">
+            <button onclick="addMedicine()">Add Medicine</button>
+        </div>
+        <div class="search-container">
+            <input type="text" id="item-search" placeholder="Search Item..." onkeyup="searchItem()">
+            <button onclick="addItem()">Add New Item</button>
+        </div>
+        <div class="medicine-list">
+            <h3>All Medicines</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Rate</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="medicine-list-tbody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        <div class="table-container">
+            <table id="items-table">
+                <thead>
+                    <tr>
+                        <th>ITEM NAME</th>
+                        <th>QTY</th>
+                        <th>BONUS/BATCH</th>
+                        <th>EXP</th>
+                        <th>RATE</th>
+                        <th>GROSS</th>
+                        <th>DISC AMOUNT</th>
+                        <th>TAX AMOUNT</th>
+                        <th>NET AMOUNT</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="items-tbody">
+                    <tr>
+                        <td><span class="editable item-name" contenteditable="true">DICLORAN DISPERSIBLE 20S</span></td>
+                        <td><span class="editable qty" contenteditable="true" oninput="calculateRow(this)">1</span></td>
+                        <td><span class="editable" contenteditable="true">-</span></td>
+                        <td><span class="editable" contenteditable="true">03/2026</span></td>
+                        <td><span class="editable rate" contenteditable="true" oninput="calculateRow(this)">109.79</span></td>
+                        <td><span class="gross">109.79</span></td>
+                        <td><span class="editable disc-amount" contenteditable="true" oninput="calculateRow(this)">0</span></td>
+                        <td><span class="editable tax-amount" contenteditable="true" oninput="calculateRow(this)">0</span></td>
+                        <td><span class="net-amount">204.7</span></td>
+                        <td><button class="remove-btn" onclick="removeItem(this)">Remove</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="editable item-name" contenteditable="true">DICLORAN TAB 50MG 30S/30A</span></td>
+                        <td><span class="editable qty" contenteditable="true" oninput="calculateRow(this)">2</span></td>
+                        <td><span class="editable" contenteditable="true">B5N03</span></td>
+                        <td><span class="editable" contenteditable="true">01-28</span></td>
+                        <td><span class="editable rate" contenteditable="true" oninput="calculateRow(this)">310.25</span></td>
+                        <td><span class="gross">621</span></td>
+                        <td><span class="editable disc-amount" contenteditable="true" oninput="calculateRow(this)">0</span></td>
+                        <td><span class="editable tax-amount" contenteditable="true" oninput="calculateRow(this)">0</span></td>
+                        <td><span class="net-amount">616.0</span></td>
+                        <td><button class="remove-btn" onclick="removeItem(this)">Remove</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>Total Items: <span id="total-items">2</span> Total Quantity: <span id="total-qty">3</span></p>
+        </div>
+        <div class="totals">
+            <p>Advance WHTax @ 2.50%: <span id="whtax">0.00</span></p>
+            <p>Net Total: <span id="net-total">820.7</span></p>
+            <p id="amount-in-words">Rupees Eight Hundred and Twenty Only</p>
+        </div>
+    </div>
+    <div class="buttons">
+        <button onclick="printInvoice()">Print Invoice</button>
+        <button onclick="saveInvoice()">Save Invoice</button>
+        <button onclick="loadSavedInvoice()">Load Saved Invoice</button>
+    </div>
+    <script>
+        let customers = [
+            { id: 1, name: "DR.SHAHJAR IQBAL (AL-SHIFA MIDICAL CENTER)", regNo: "1010203/MULTAN ROAD", address: "505/EB ROAD NEAR GIRLS SCHOOL", phone: "03000925374", customerId: "NON-FILER" },
+            { id: 2, name: "DR.AHMED KHAN (CITY CLINIC)", regNo: "1010204/LAHORE ROAD", address: "123 MAIN STREET", phone: "03211234567", customerId: "FILER" },
+            { id: 3, name: "DR.SANA MALIK (HEALTHCARE CENTER)", regNo: "1010205/KARACHI ROAD", address: "456 HEALTH ROAD", phone: "03112345678", customerId: "NON-FILER" }
+        ];
+
+        let itemsList = [
+            { name: "DICLORAN DISPERSIBLE 20S", rate: 109.79 },
+            { name: "DICLORAN TAB 50MG 30S/30A", rate: 310.25 },
+            { name: "LACASI SYP 120ML", rate: 293.25 },
+            { name: "NIMS TAB 30S 30S", rate: 318.75 },
+            { name: "NOVDIAT TAB 250MG 10S", rate: 210.40 },
+            { name: "NOVDIAT TAB 500MG 10S", rate: 366.50 },
+            { name: "TERICTA SUSP 90ML/50ML", rate: 153.00 },
+            { name: "PARACETAMOL 500MG 10S", rate: 50.00 },
+            { name: "IBUPROFEN 200MG 10S", rate: 75.00 },
+            { name: "AMOXICILLIN 500MG 10S", rate: 120.00 }
+        ];
+
+        // Load itemsList from localStorage on page load
+        window.onload = function() {
+            const storedCustomers = localStorage.getItem("customers");
+            if (storedCustomers) {
+                customers = JSON.parse(storedCustomers);
+            }
+            const storedItems = localStorage.getItem("itemsList");
+            if (storedItems) {
+                itemsList = JSON.parse(storedItems);
+            }
+            populateCustomerDropdown();
+            populateMedicineList();
+            updateTotals();
+        };
+
+        function populateCustomerDropdown() {
+            const select = document.getElementById("customer-select");
+            select.innerHTML = '<option value="">-- Select Customer --</option>';
+            customers.forEach(customer => {
+                const option = document.createElement("option");
+                option.value = customer.id;
+                option.text = customer.name;
+                select.appendChild(option);
+            });
+        }
+
+        function addCustomer() {
+            const name = document.getElementById("new-customer-name").value.trim();
+            const regNo = document.getElementById("new-customer-reg-no").value.trim();
+            const address = document.getElementById("new-customer-address").value.trim();
+            const phone = document.getElementById("new-customer-phone").value.trim();
+            const customerId = document.getElementById("new-customer-id").value;
+
+            if (!name || !regNo || !address || !phone) {
+                alert("Please fill in all customer details.");
+                return;
+            }
+
+            const newCustomer = {
+                id: customers.length ? Math.max(...customers.map(c => c.id)) + 1 : 1,
+                name,
+                regNo,
+                address,
+                phone,
+                customerId
+            };
+
+            customers.push(newCustomer);
+            localStorage.setItem("customers", JSON.stringify(customers));
+            populateCustomerDropdown();
+
+            document.getElementById("new-customer-name").value = "";
+            document.getElementById("new-customer-reg-no").value = "";
+            document.getElementById("new-customer-address").value = "";
+            document.getElementById("new-customer-phone").value = "";
+            document.getElementById("new-customer-id").value = "FILER";
+
+            alert("Customer added successfully!");
+        }
+
+        function loadCustomer() {
+            const customerId = document.getElementById("customer-select").value;
+            const customer = customers.find(c => c.id == customerId);
+            if (customer) {
+                document.getElementById("customer-name").innerText = customer.name;
+                document.getElementById("reg-no").innerText = customer.regNo;
+                document.getElementById("address").innerText = customer.address;
+                document.getElementById("phone").innerText = customer.phone;
+                document.getElementById("customer-id").innerText = customer.customerId;
+            }
+        }
+
+        function populateMedicineList() {
+            const tbody = document.getElementById("medicine-list-tbody");
+            tbody.innerHTML = "";
+            itemsList.forEach(item => {
+                const row = document.createElement("tr");
+                const nameCell = document.createElement("td");
+                const rateCell = document.createElement("td");
+                const actionCell = document.createElement("td");
+
+                const nameText = document.createTextNode(item.name);
+                nameCell.appendChild(nameText);
+
+                const rateText = document.createTextNode(item.rate.toFixed(2));
+                rateCell.appendChild(rateText);
+
+                const addButton = document.createElement("button");
+                addButton.className = "add-medicine-btn";
+                addButton.textContent = "Add";
+                addButton.addEventListener("click", () => {
+                    addItem(item.name, 1, item.rate);
+                });
+                actionCell.appendChild(addButton);
+
+                row.appendChild(nameCell);
+                row.appendChild(rateCell);
+                row.appendChild(actionCell);
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function addMedicine() {
+            const name = document.getElementById("new-medicine-name").value.trim();
+            const rate = parseFloat(document.getElementById("new-medicine-rate").value) || 0;
+
+            if (!name || rate <= 0) {
+                alert("Please enter a valid medicine name and rate.");
+                return;
+            }
+
+            if (itemsList.some(item => item.name.toLowerCase() === name.toLowerCase())) {
+                alert("This medicine already exists!");
+                return;
+            }
+
+            const newMedicine = { name, rate };
+            itemsList.push(newMedicine);
+            localStorage.setItem("itemsList", JSON.stringify(itemsList));
+            populateMedicineList();
+
+            document.getElementById("new-medicine-name").value = "";
+            document.getElementById("new-medicine-rate").value = "";
+
+            alert("Medicine added successfully!");
+        }
+
+        function calculateRow(element) {
+            const row = element.closest("tr");
+            const qty = parseFloat(row.querySelector(".qty").innerText) || 0;
+            const rate = parseFloat(row.querySelector(".rate").innerText) || 0;
+            const discAmount = parseFloat(row.querySelector(".disc-amount").innerText) || 0;
+            const taxAmount = parseFloat(row.querySelector(".tax-amount").innerText) || 0;
+
+            const gross = qty * rate;
+            const netAmount = gross - discAmount + taxAmount;
+
+            row.querySelector(".gross").innerText = gross.toFixed(2);
+            row.querySelector(".net-amount").innerText = netAmount.toFixed(2);
+
+            updateTotals();
+        }
+
+        function updateTotals() {
+            const rows = document.querySelectorAll("#items-tbody tr");
+            let totalItems = rows.length;
+            let totalQty = 0;
+            let totalNet = 0;
+
+            rows.forEach(row => {
+                const qty = parseFloat(row.querySelector(".qty").innerText) || 0;
+                const netAmount = parseFloat(row.querySelector(".net-amount").innerText) || 0;
+                totalQty += qty;
+                totalNet += netAmount;
+            });
+
+            const whtax = totalNet * 0.025;
+            const finalTotal = totalNet + whtax;
+
+            document.getElementById("total-items").innerText = totalItems;
+            document.getElementById("total-qty").innerText = totalQty;
+            document.getElementById("whtax").innerText = whtax.toFixed(2);
+            document.getElementById("net-total").innerText = finalTotal.toFixed(2);
+            document.getElementById("amount-in-words").innerText = numberToWords(Math.round(finalTotal));
+        }
+
+        function numberToWords(num) {
+            const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
+            const teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+            const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+            const thousands = ["", "Thousand", "Million", "Billion"];
+
+            if (num === 0) return "Zero";
+
+            let words = "";
+            let thousandCounter = 0;
+
+            while (num > 0) {
+                let part = num % 1000;
+                if (part > 0) {
+                    let partWords = "";
+                    if (part >= 100) {
+                        partWords += units[Math.floor(part / 100)] + " Hundred ";
+                        part %= 100;
+                    }
+                    if (part >= 20) {
+                        partWords += tens[Math.floor(part / 10)] + " ";
+                        part %= 10;
+                    }
+                    if (part >= 10 && part < 20) {
+                        partWords += teens[part - 10] + " ";
+                        part = 0;
+                    }
+                    if (part > 0 && part < 10) {
+                        partWords += units[part] + " ";
+                    }
+                    words = partWords + thousands[thousandCounter] + " " + words;
+                }
+                num = Math.floor(num / 1000);
+                thousandCounter++;
+            }
+            return "Rupees " + words.trim() + " Only";
+        }
+
+        function addItem(itemName = "New Item", qty = 1, rate = 0) {
+            const tbody = document.getElementById("items-tbody");
+            const row = document.createElement("tr");
+            
+            const nameCell = document.createElement("td");
+            const qtyCell = document.createElement("td");
+            const bonusBatchCell = document.createElement("td");
+            const expCell = document.createElement("td");
+            const rateCell = document.createElement("td");
+            const grossCell = document.createElement("td");
+            const discAmountCell = document.createElement("td");
+            const taxAmountCell = document.createElement("td");
+            const netAmountCell = document.createElement("td");
+            const actionCell = document.createElement("td");
+
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "editable item-name";
+            nameSpan.contentEditable = true;
+            nameSpan.textContent = itemName;
+            nameCell.appendChild(nameSpan);
+
+            const qtySpan = document.createElement("span");
+            qtySpan.className = "editable qty";
+            qtySpan.contentEditable = true;
+            qtySpan.setAttribute("oninput", "calculateRow(this)");
+            qtySpan.textContent = qty.toString();
+            qtyCell.appendChild(qtySpan);
+
+            const bonusBatchSpan = document.createElement("span");
+            bonusBatchSpan.className = "editable";
+            bonusBatchSpan.contentEditable = true;
+            bonusBatchSpan.textContent = "-";
+            bonusBatchCell.appendChild(bonusBatchSpan);
+
+            const expSpan = document.createElement("span");
+            expSpan.className = "editable";
+            expSpan.contentEditable = true;
+            expSpan.textContent = "01-26";
+            expCell.appendChild(expSpan);
+
+            const rateSpan = document.createElement("span");
+            rateSpan.className = "editable rate";
+            rateSpan.contentEditable = true;
+            rateSpan.setAttribute("oninput", "calculateRow(this)");
+            rateSpan.textContent = rate.toString();
+            rateCell.appendChild(rateSpan);
+
+            const grossSpan = document.createElement("span");
+            grossSpan.className = "gross";
+            grossSpan.textContent = (qty * rate).toFixed(2);
+            grossCell.appendChild(grossSpan);
+
+            const discAmountSpan = document.createElement("span");
+            discAmountSpan.className = "editable disc-amount";
+            discAmountSpan.contentEditable = true;
+            discAmountSpan.setAttribute("oninput", "calculateRow(this)");
+            discAmountSpan.textContent = "0";
+            discAmountCell.appendChild(discAmountSpan);
+
+            const taxAmountSpan = document.createElement("span");
+            taxAmountSpan.className = "editable tax-amount";
+            taxAmountSpan.contentEditable = true;
+            taxAmountSpan.setAttribute("oninput", "calculateRow(this)");
+            taxAmountSpan.textContent = "0";
+            taxAmountCell.appendChild(taxAmountSpan);
+
+            const netAmountSpan = document.createElement("span");
+            netAmountSpan.className = "net-amount";
+            netAmountSpan.textContent = (qty * rate).toFixed(2);
+            netAmountCell.appendChild(netAmountSpan);
+
+            const removeButton = document.createElement("button");
+            removeButton.className = "remove-btn";
+            removeButton.textContent = "Remove";
+            removeButton.setAttribute("onclick", "removeItem(this)");
+            actionCell.appendChild(removeButton);
+
+            row.appendChild(nameCell);
+            row.appendChild(qtyCell);
+            row.appendChild(bonusBatchCell);
+            row.appendChild(expCell);
+            row.appendChild(rateCell);
+            row.appendChild(grossCell);
+            row.appendChild(discAmountCell);
+            row.appendChild(taxAmountCell);
+            row.appendChild(netAmountCell);
+            row.appendChild(actionCell);
+
+            tbody.appendChild(row);
+            updateTotals();
+        }
+
+        function removeItem(button) {
+            button.closest("tr").remove();
+            updateTotals();
+        }
+
+        function searchItem() {
+            const searchText = document.getElementById("item-search").value.toLowerCase();
+            const matchingItem = itemsList.find(item => item.name.toLowerCase().includes(searchText));
+            if (matchingItem) {
+                addItem(matchingItem.name, 1, matchingItem.rate);
+                document.getElementById("item-search").value = "";
+            }
+        }
+
+        function saveInvoice() {
+            const invoice = {
+                invoiceNo: document.getElementById("invoice-no").innerText,
+                invoiceDate: document.getElementById("invoice-date").innerText,
+                dssId: document.getElementById("dss-id").innerText,
+                bookingMan: document.getElementById("booking-man").innerText,
+                customerId: document.getElementById("customer-id").innerText,
+                customerName: document.getElementById("customer-name").innerText,
+                regNo: document.getElementById("reg-no").innerText,
+                address: document.getElementById("address").innerText,
+                phone: document.getElementById("phone").innerText,
+                items: []
+            };
+
+            const rows = document.querySelectorAll("#items-tbody tr");
+            rows.forEach(row => {
+                const item = {
+                    name: row.querySelector(".item-name").innerText,
+                    qty: row.querySelector(".qty").innerText,
+                    bonusBatch: row.querySelector("td:nth-child(3) .editable").innerText,
+                    exp: row.querySelector("td:nth-child(4) .editable").innerText,
+                    rate: row.querySelector(".rate").innerText,
+                    gross: row.querySelector(".gross").innerText,
+                    discAmount: row.querySelector(".disc-amount").innerText,
+                    taxAmount: row.querySelector(".tax-amount").innerText,
+                    netAmount: row.querySelector(".net-amount").innerText
+                };
+                invoice.items.push(item);
+            });
+
+            localStorage.setItem("savedInvoice", JSON.stringify(invoice));
+            alert("Invoice saved!");
+        }
+
+        function loadSavedInvoice() {
+            const savedInvoice = localStorage.getItem("savedInvoice");
+            if (savedInvoice) {
+                const invoice = JSON.parse(savedInvoice);
+                document.getElementById("invoice-no").innerText = invoice.invoiceNo;
+                document.getElementById("invoice-date").innerText = invoice.invoiceDate;
+                document.getElementById("dss-id").innerText = invoice.dssId;
+                document.getElementById("booking-man").innerText = invoice.bookingMan;
+                document.getElementById("customer-id").innerText = invoice.customerId;
+                document.getElementById("customer-name").innerText = invoice.customerName;
+                document.getElementById("reg-no").innerText = invoice.regNo;
+                document.getElementById("address").innerText = invoice.address;
+                document.getElementById("phone").innerText = invoice.phone;
+
+                const tbody = document.getElementById("items-tbody");
+                tbody.innerHTML = "";
+                invoice.items.forEach(item => {
+                    const row = document.createElement("tr");
+                    const nameCell = document.createElement("td");
+                    const qtyCell = document.createElement("td");
+                    const bonusBatchCell = document.createElement("td");
+                    const expCell = document.createElement("td");
+                    const rateCell = document.createElement("td");
+                    const grossCell = document.createElement("td");
+                    const discAmountCell = document.createElement("td");
+                    const taxAmountCell = document.createElement("td");
+                    const netAmountCell = document.createElement("td");
+                    const actionCell = document.createElement("td");
+
+                    const nameSpan = document.createElement("span");
+                    nameSpan.className = "editable item-name";
+                    nameSpan.contentEditable = true;
+                    nameSpan.textContent = item.name;
+                    nameCell.appendChild(nameSpan);
+
+                    const qtySpan = document.createElement("span");
+                    qtySpan.className = "editable qty";
+                    qtySpan.contentEditable = true;
+                    qtySpan.setAttribute("oninput", "calculateRow(this)");
+                    qtySpan.textContent = item.qty;
+                    qtyCell.appendChild(qtySpan);
+
+                    const bonusBatchSpan = document.createElement("span");
+                    bonusBatchSpan.className = "editable";
+                    bonusBatchSpan.contentEditable = true;
+                    bonusBatchSpan.textContent = item.bonusBatch;
+                    bonusBatchCell.appendChild(bonusBatchSpan);
+
+                    const expSpan = document.createElement("span");
+                    expSpan.className = "editable";
+                    expSpan.contentEditable = true;
+                    expSpan.textContent = item.exp;
+                    expCell.appendChild(expSpan);
+
+                    const rateSpan = document.createElement("span");
+                    rateSpan.className = "editable rate";
+                    rateSpan.contentEditable = true;
+                    rateSpan.setAttribute("oninput", "calculateRow(this)");
+                    rateSpan.textContent = item.rate;
+                    rateCell.appendChild(rateSpan);
+
+                    const grossSpan = document.createElement("span");
+                    grossSpan.className = "gross";
+                    grossSpan.textContent = item.gross;
+                    grossCell.appendChild(grossSpan);
+
+                    const discAmountSpan = document.createElement("span");
+                    discAmountSpan.className = "editable disc-amount";
+                    discAmountSpan.contentEditable = true;
+                    discAmountSpan.setAttribute("oninput", "calculateRow(this)");
+                    discAmountSpan.textContent = item.discAmount;
+                    discAmountCell.appendChild(discAmountSpan);
+
+                    const taxAmountSpan = document.createElement("span");
+                    taxAmountSpan.className = "editable tax-amount";
+                    taxAmountSpan.contentEditable = true;
+                    taxAmountSpan.setAttribute("oninput", "calculateRow(this)");
+                    taxAmountSpan.textContent = item.taxAmount;
+                    taxAmountCell.appendChild(taxAmountSpan);
+
+                    const netAmountSpan = document.createElement("span");
+                    netAmountSpan.className = "net-amount";
+                    netAmountSpan.textContent = item.netAmount;
+                    netAmountCell.appendChild(netAmountSpan);
+
+                    const removeButton = document.createElement("button");
+                    removeButton.className = "remove-btn";
+                    removeButton.textContent = "Remove";
+                    removeButton.setAttribute("onclick", "removeItem(this)");
+                    actionCell.appendChild(removeButton);
+
+                    row.appendChild(nameCell);
+                    row.appendChild(qtyCell);
+                    row.appendChild(bonusBatchCell);
+                    row.appendChild(expCell);
+                    row.appendChild(rateCell);
+                    row.appendChild(grossCell);
+                    row.appendChild(discAmountCell);
+                    row.appendChild(taxAmountCell);
+                    row.appendChild(netAmountCell);
+                    row.appendChild(actionCell);
+
+                    tbody.appendChild(row);
+                });
+                updateTotals();
+            } else {
+                alert("No saved invoice found!");
+            }
+        }
+
+        function printInvoice() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
